@@ -32,7 +32,7 @@ Please check back soon for more upates and details!
 ## Installing
 
 TyperAssistant uses [poetry](https://python-poetry.org/) for a build system, so you can
-safely install it like you would any pyhon package.
+safely install it like you would any python package.
 
 **At this time, there is no prebuilt binary distrobution on PyPI or on github**, so you
 will need to install it with a github ssh or https link, like so:
