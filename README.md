@@ -1,5 +1,5 @@
 # TyperAssistant
-Automatically generate an OpenAI Assistant interface for any python Typer CLI.
+Instantly turn any Typer app in to a function-calling OpenAI assistant.
 
 Example [Typer](https://typer.tiangolo.com/) app:
 ```python
