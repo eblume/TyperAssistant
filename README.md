@@ -54,7 +54,7 @@ subject](https://help.openai.com/en/articles/8550641-assistants-api#h_061c53c67a
 is not yet cost optimized**, and in some edge cases might result in some bad behavior - no guards exist against overuse
 of the paid assistant api features, for instance during automated testing.
 
-Use the TyperAssistant classs to create an assistant using OpenAI's
+Use the TyperAssistant class to create an assistant using OpenAI's
 [assistant API](https://platform.openai.com/docs/api-reference/assistants). You can set various attributes like the
 `name` of the command to create (default `'ask'`), the name of your app (by default, detected from typer and
 sys.argv[0]), or the assistant instructions (a default instruction is provided that works well.)
