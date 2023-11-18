@@ -1,0 +1,46 @@
+name: Upload Python Package to PyPI
+
+on:
+  push:
+    tags:
+    - '[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  POETRY_HOME: /opt/poetry
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # This permission is required for trusted publishing.
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '>=3.10'
+
+      # see: https://python-poetry.org/docs/#ci-recommendations
+      - name: Install and Build
+        shell: bash
+        run: |
+          python3 -m venv $POETRY_HOME
+          $POETRY_HOME/bin/pip install poetry==1.7.1
+          $POETRY_HOME/bin/poetry --version
+          $POETRY_HOME/bin/poetry config virtualenvs.create "false"
+          $POETRY_HOME/bin/poetry version ${{ github.ref_name }}
+          $POETRY_HOME/bin/poetry build
+
+      - name: Mint token
+        id: mint
+        uses: tschm/token-mint-action@v1.0.2  # May 4 2023
+
+      - name: Publish
+        shell: bash
+        run: |
+          $POETRY_HOME/bin/poetry publish -u __token__ -p '${{ steps.mint.outputs.api-token }}'
