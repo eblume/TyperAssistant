@@ -71,7 +71,7 @@ sys.argv[0]), or the assistant instructions (a default instruction is provided t
 
 Aside from the injected command (which in future versions you may disable), you can also access the assistant directly
 for a convenient auto-running assistant loop. You can use the parent class to TyperAssistant, Assistant, to use this
-functionality without any reliance on typer, like in this complex example:
+functionality without any reliance on typer, like in this example:
 
 ```python
 thread_id = SomeDatabase().get_or_create_some_thread().id
