@@ -35,26 +35,16 @@ TyperAssistant uses [poetry](https://python-poetry.org/) for a build system, so 
 safely install it like you would any pyhon package.
 
 **At this time, there is no prebuilt binary distrobution on PyPI or on github**, so you
-will need to install it using a locally cloned repository. It might look something like
-this:
+will need to install it with a github ssh or https link, like so:
 
 ```bash
-$ git clone git@github.com:eblume/TyperAssistant.git ../TyperAssistant
-$ python -m venv env && source env/bin/activate
-my_project_venv$ pip install ../TyperAssistant
+$ pip install git+https://github.com/eblume/TyperAssistant
 ```
 
 Or, with poetry:
 
 ```bash
-$ git clone git@github.com:eblume/TyperAssistant.git ../TyperAssistant
-$ poetry add ../TyperAssistant
-```
-
-Once the binary release process is bootstrapped, you can instead simply:
-
-```bash
-$ pip install typerassistant  # COMING SOON
+$ poetry add git+ssh://git@github.com:eblume/TyperAssistant.git
 ```
 
 ## Usage
