@@ -1,5 +1,10 @@
 name: Release
 
+
+# Adapted from:
+# https://github.com/python-poetry/poetry/blob/master/.github/workflows/release.yml
+# License: MIT License (https://github.com/python-poetry/poetry/blob/master/LICENSE)
+
 on:
   push:
     tags:
@@ -10,30 +15,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      POETRY_HOME: /opt/poetry
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '>=3.10'
+          python-version: '3.10'
 
-      # see: https://python-poetry.org/docs/#ci-recommendations
-      - name: Install and Build
-        shell: bash
+      - name: Install Poetry
         run: |
-          python3 -m venv $POETRY_HOME
-          $POETRY_HOME/bin/pip install poetry==1.7.1
-          $POETRY_HOME/bin/poetry --version
-          $POETRY_HOME/bin/poetry config virtualenvs.create "false"
-          $POETRY_HOME/bin/poetry version ${{ github.ref_name }}
-          $POETRY_HOME/bin/poetry build
+          curl -sSL https://install.python-poetry.org | python - -y
 
-      # see: https://github.com/python-poetry/poetry/blob/master/.github/workflows/release.yml
-      # TODO License, for this tiny bit of CI, maybe?
+      - name: Update PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build project for distribution
+        run: poetry build
+
       - name: Check Version
         id: check-version
         run: |
