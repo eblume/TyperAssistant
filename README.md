@@ -24,7 +24,7 @@ app()
 ```
 
 Example CLI usage:
-![examples/example_1.png](https://github.com/eblume/TyperAssistant/raw/master/examples/example_1.png)
+![python example_1.py ask "Please greet me by my name"](examples/example_1.png)
 
 **NOTE: TyperAssistant is in early development and the interface may change rapidly.**
 Please check back soon for more upates and details!
@@ -80,12 +80,12 @@ assistant = Assistant(name="SuperBot", replace=True, instructions=instructions, 
 print(assistant.ask(input(f"{user_prompt}: ")))
 ```
 
-![examples/example_2.png](https://github.com/eblume/TyperAssistant/raw/master/examples/example_2.png)
+![example showing a non-typer assistant being useful](examples/example_2.png)
 
 There are other things you can do when you mix up the TyperAssistant wrapper along with the assistant API, some of which
-are demonstrated in [examples/example_3.py](https://github.com/eblume/TyperAssistant/raw/master/examples/example_3.py):
+are demonstrated in [example_3.py](examples/example_3.py)
 
-![examples/example_3.png](https://github.com/eblume/TyperAssistant/raw/master/examples/example_3.png)
+![example showing a complex typer CLI involving command groups and lifecycle functions](examples/example_3.png)
 
 ## Assistant Lifecycle
 
