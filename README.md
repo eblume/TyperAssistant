@@ -56,7 +56,7 @@ of the paid assistant api features, for instance during automated testing.
 
 Use the TyperAssistant class to create an assistant using OpenAI's
 [assistant API](https://platform.openai.com/docs/api-reference/assistants). You can set various attributes like the
-`name` of the command to create (default `'ask'`), the name of your app (by default, detected from typer and
+`command_name` of the command to create (default `'ask'`), the name of your app (by default, detected from typer and
 sys.argv[0]), or the assistant instructions (a default instruction is provided that works well.)
 
 Aside from the injected command (which in future versions you may disable), you can also access the assistant directly
