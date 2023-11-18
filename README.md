@@ -1,7 +1,7 @@
 # TyperAssistant
-Automatically generate an OpenAI Assistant interface for any python typer CLI.
+Automatically generate an OpenAI Assistant interface for any python Typer CLI.
 
-Example [typer](https://typer.tiangolo.com/) app:
+Example [Typer](https://typer.tiangolo.com/) app:
 ```python
 import getpass
 import typer
@@ -60,7 +60,9 @@ $ pip install typerassistant  # COMING SOON
 ## Usage
 
 **Please be aware that OpenAI's API incurs fees.** See [OpenAI's help article on the
-subject](https://help.openai.com/en/articles/8550641-assistants-api#h_061c53c67a) for more information.
+subject](https://help.openai.com/en/articles/8550641-assistants-api#h_061c53c67a) for more information. **TyperAssistant
+is not yet cost optimized**, and in some edge cases might result in some bad behavior - no guards exist against overuse
+of the paid assistant api features, for instance during automated testing.
 
 Use the TyperAssistant classs to create an assistant using OpenAI's
 [assistant API](https://platform.openai.com/docs/api-reference/assistants). You can set various attributes like the
