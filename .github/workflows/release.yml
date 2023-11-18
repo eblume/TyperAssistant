@@ -1,21 +1,15 @@
-name: Upload Python Package to PyPI
+name: Release
 
 on:
   push:
     tags:
     - '[0-9]+.[0-9]+.[0-9]+'
 
-env:
-  POETRY_HOME: /opt/poetry
-
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
-
-    permissions:
-      # This permission is required for trusted publishing.
-      id-token: write
-      contents: read
+    env:
+      POETRY_HOME: /opt/poetry
 
     steps:
       - uses: actions/checkout@v3
@@ -36,11 +30,18 @@ jobs:
           $POETRY_HOME/bin/poetry version ${{ github.ref_name }}
           $POETRY_HOME/bin/poetry build
 
-      - name: Mint token
-        id: mint
-        uses: tschm/token-mint-action@v1.0.2  # May 4 2023
-
-      - name: Publish
-        shell: bash
+      # see: https://github.com/python-poetry/poetry/blob/master/.github/workflows/release.yml
+      # TODO License, for this tiny bit of CI, maybe?
+      - name: Check Version
+        id: check-version
         run: |
-          $POETRY_HOME/bin/poetry publish -u __token__ -p '${{ steps.mint.outputs.api-token }}'
+          [[ "$(poetry version --short)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo prerelease=true >> $GITHUB_OUTPUT
+
+      # (same note on source as check-version)
+      - name: Create Release
+        uses: ncipollo/release-action@v1.13.0  # Aug 24 2023
+        with:
+          artifacts: "dist/*"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prelease: steps.check-version.outputs.prerelease == 'true'
