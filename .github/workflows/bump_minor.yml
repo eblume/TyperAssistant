@@ -33,8 +33,10 @@ jobs:
           poetry version minor
           git add pyproject.toml
           git commit -m "Bump Minor Version"
-          git push origin master
+          git push
 
       - name: Tag
         # Note that this continues in release.yml, as per tagging
-        run: git tag $(poetry version --short)
+        run: |
+          git tag $(poetry version --short)
+          git push origin --tags
