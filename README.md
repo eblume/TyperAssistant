@@ -89,7 +89,7 @@ default inferred from the class name, or for `TyperAssistant` they are inferred 
 
 `RemoteAssistant`s are not managed beyond creation - there is no functionality (yet) to alter an existing assistant
 automatically, so as you develop your application you will need to manage the assistants as per the `delete_assistant()`
-command in the above example.
+command in [example_3.py](examples/example_3.py).
 
 In the future, this project may provide a more granular lifecycle including:
   * Update assistants in place
