@@ -1,10 +1,22 @@
 [tool.poetry]
 name = "typerassistant"
-version = "0.2.4"
+version = "0.2.5"
 description = "Automatically generate an OpenAI Assistant interface for any python typer CLI."
 authors = ["Erich Blume <blume.erich@gmail.com>"]
 license = "MIT License"
 readme = "README.md"
+homepage = "https://github.com/eblume/TyperAssistant"
+repository = "https://github.com/eblume/TyperAssistant"
+keywords = ["typer", "openai", "assistant", "cli", "command-line", "interface", "ai", "artificial intelligence"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: User Interfaces",
+    "Topic :: Utilities",
+]
 packages = [
     { "include" = "typerassistant", "from" = "src" },
 ]
