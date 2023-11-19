@@ -50,4 +50,4 @@ jobs:
 
       # Publish to PyPI via PyPA 'best practice'
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1.8.10  # Aug 10 2023
+        uses: pypa/gh-action-pypi-publish@v1.8.10  # Aug 10 2023
