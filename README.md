@@ -34,17 +34,15 @@ Please check back soon for more upates and details!
 TyperAssistant uses [poetry](https://python-poetry.org/) for a build system, so you can
 safely install it like you would any python package.
 
-**At this time, there is no prebuilt binary distrobution on PyPI or on github**, so you
-will need to install it with a github ssh or https link, like so:
 
 ```bash
-$ pip install git+https://github.com/eblume/TyperAssistant
+$ pip install typerassistant
 ```
 
 Or, with poetry:
 
 ```bash
-$ poetry add git+ssh://git@github.com:eblume/TyperAssistant.git
+$ poetry add typerassistant
 ```
 
 ## Usage
@@ -107,8 +105,6 @@ In addition to the above lifecycle enhancements, the following are planned for i
 * Flag and/or mask functions to exclude from agent processing (syntax not yet clear)
 * Prompt mode, delaying function execution until user interactively confirms execution (on by default)
 * More support for typer/click's various capabilities, especially for non-string arguments.
-* Automated build/test/release process.
-* PyPI registration.
 
 And, I have some longer-term plans:
 
