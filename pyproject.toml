@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "typerassistant"
-version = "0.2.6"
+version = "0.2.7"
 description = "Automatically generate an OpenAI Assistant interface for any python typer CLI."
 authors = ["Erich Blume <blume.erich@gmail.com>"]
 license = "MIT License"
@@ -35,6 +35,8 @@ ipdb = "^0.13.13"
 [tool.ruff]
 line-length = 120
 target-version = "py310"
+# Default select = ["E4", "E7", "E9", "F"]
+select = ["E4", "E7", "E9", "F", "W", "I"]
 
 [build-system]
 requires = ["poetry-core"]

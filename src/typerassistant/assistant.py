@@ -1,11 +1,11 @@
 import json
-from textwrap import shorten
-from io import StringIO
-from contextlib import redirect_stdout
 import time
-from dataclasses import dataclass, KW_ONLY, field
-from typing import Optional, Any
 from collections.abc import Iterable
+from contextlib import redirect_stdout
+from dataclasses import KW_ONLY, dataclass, field
+from io import StringIO
+from textwrap import shorten
+from typing import Any, Optional
 
 from openai import OpenAI
 from openai.types.beta.assistant import Assistant as RemoteAssistant
@@ -15,7 +15,6 @@ from rich import print
 from rich.panel import Panel
 
 from .spec import FunctionSpec
-
 
 # The number of times to poll for a run to complete before giving up
 MAX_RUN_ITERATIONS = 20

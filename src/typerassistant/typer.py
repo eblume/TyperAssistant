@@ -1,5 +1,5 @@
 import sys
-from dataclasses import dataclass, field, KW_ONLY
+from dataclasses import KW_ONLY, dataclass, field
 from typing import Iterable, Optional
 
 import typer
