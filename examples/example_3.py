@@ -1,4 +1,4 @@
-"""Usage: python example_3.py ask "Pick a cat and send them to the Heaviside Layer"
+"""Usage: python example_3.py ask --no-prompt "Pick a cat and send them to the Heaviside Layer"
 """
 import typer
 from typerassistant.typer import TyperAssistant

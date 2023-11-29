@@ -37,9 +37,10 @@ class TyperAssistant(Assistant):
                 continue
             yield func
 
-    def ask_command(self, query: str):
+    def ask_command(self, query: str, prompt: bool = True, thread_id: Optional[str] = None):
         """Ask the assistant a question, with response printed to stdout."""
-        typer.echo(self.ask(query))
+        self.prompt = prompt  # TODO move to Run API
+        typer.echo(self.ask(query, thread_id=thread_id))
 
 
 def typerfunc(app: typer.Typer, command_prefix: str = None) -> list[FunctionSpec]:

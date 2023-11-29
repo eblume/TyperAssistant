@@ -1,9 +1,10 @@
-"""Usage: python example_1.py ask "Please greet me by name"
+"""Usage: python example_1.py ask --no-prompt "Please greet me by name"
 """
 import getpass
+
 import typer
-from typerassistant import TyperAssistant
 from openai import OpenAI
+from typerassistant import TyperAssistant
 
 app = typer.Typer()
 client = OpenAI()  # Assuming OPENAI_API_KEY is set in the environment

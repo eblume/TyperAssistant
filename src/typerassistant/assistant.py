@@ -13,8 +13,9 @@ from openai.types.beta.thread import Thread
 from openai.types.beta.threads.thread_message import ThreadMessage
 from rich import print
 from rich.panel import Panel
+from rich.prompt import Confirm
 
-from .spec import FunctionSpec
+from .spec import FunctionCall, FunctionResult, FunctionSpec
 
 # The number of times to poll for a run to complete before giving up
 MAX_RUN_ITERATIONS = 20
@@ -41,6 +42,7 @@ class Assistant:
     name: Optional[str] = None
     instructions: str = "Assist the user with their query. Be concise."
     replace: bool = False
+    prompt: bool = True
     thread_id: Optional[str] = None
     assistant_id: Optional[str] = None
 
@@ -52,15 +54,17 @@ class Assistant:
             # TODO rethink this, delay making the assistant until we need it.
             self.assistant_id = self.make_assistant().id
 
-    def ask(self, query: str, instructions: Optional[str] = None) -> str:
+    def ask(self, query: str, instructions: Optional[str] = None, thread_id: Optional[str] = None) -> str:
         """Ask the assistant a question, returning the response.
 
         This may block for the lifecycle of several API requests as well as waiting on remotely managed threads, in fact
         blocking for several minutes and then succeeding is not uncommon. The caller should make arrangements for
         multithreading, etc. should it be needed.
+
+        If supplied, thread_id overrides the thread_id of this assistant.
         """
         self.add_message(query)
-        self.run_thread()
+        self.run_thread(thread_id or self.thread_id)
         messages = list(self.messages())
         # TODO figure out proper context processing with citations, etc.
         content = messages[0].content
@@ -71,64 +75,11 @@ class Assistant:
 
     def functions(self) -> Iterable[FunctionSpec]:
         """Returns an iterable of FunctionSpecs describing the function calling tools of this assistant."""
-        # The base assistant just returns an empty list but almost any real use case will extend this.
+        # The base assistant just returns an empty list but almost any real use case will extend this
         yield from []
-
-    def do_function(self, name: str, func_args: dict[str, Any]) -> str:
-        """Execute the given function with the given arguments."""
-
-        # Helper func because of... well, you'll see the novel coming up in a few dozen lines.
-        def _capture_result(command: FunctionSpec) -> str:
-            # TODO Make all console output optional and remove to seperate methods
-            # (Sorry if you're waiting on this)
-            # print(f"Executing command {name} with args {func_args}")  # TODO logging
-            with redirect_stdout(StringIO()) as buf:
-                retval = command.action(**func_args)
-            output = buf.getvalue().rstrip()
-            if output:
-                argtxt = str(func_args).strip("{}")
-                command_title = shorten(f"{name}({argtxt})", 50)
-                print(Panel(output, border_style="dim", title=command_title, title_align="left"))
-                if retval is None:
-                    return f"Output::\n{output}"
-                else:
-                    return f"Result::\n{retval}\n\nOutput::\n{output}output"
-            # We string the result here just in case... I don't think it matters though.
-            # TODO Think more about encapsulating command return values.
-            return str(retval)
-
-        for command in self.functions():
-            if command.name == name:
-                return _capture_result(command)
-
-        # OK Let's take a break in the middle of this function and talk about a bug, and about why LLMs are tricky.
-        #
-        # There is a strange bug that seems to occur within the OpenAI function calling system, in which (I think) the
-        # LLM interprets the command name differently if it looks like a file name. For instance, if the command name
-        # is "example_1.py.get_current_user" Then the LLM will call this as just "get_current_user", I guess helpfully
-        # stripping off what it perceives as an unexpected and unneeded file name.
-        #
-        # For now, two workarounds, neither perfect:
-        # 1. Ask the LLM extra special nice to please not do that. (It works! Mostly! 🤯)
-        # 2. If no func matches, search again with just the suffix.
-        #
-        # It's possible that #2 might introduce some nasty problems, and I think for now that's just part of the whole deal
-        # with LLMs.
-        #
-        # TODO report this bug upstream? example_1.py is a small repro. Literally just remove the asking nice part and
-        # then ask it to "greet me by name" and it will fail to find the function. (Remove this loop too.)
-        #
-        # I thought intercal was a joke. Back to our function, where we just failed to find our function.
-        for command in self.functions():
-            if command.name.endswith(name):
-                return _capture_result(command)
-        # (Ironically, Copilot wrote that loop first try, no sweat.)
-
-        raise ValueError(f"Command {name} not found")
 
     def thread(self) -> Thread:
         """Retrieves the thread this assistant is using, or creates one if none exists."""
-        # TODO proper support for multiple threads and resuming threads, etc.
         if self.thread_id is None:
             self.thread_id = self.client.beta.threads.create().id
         return self.client.beta.threads.retrieve(self.thread_id)
@@ -147,51 +98,104 @@ class Assistant:
         # OTOH it encapsulates concerns well for subclassers.
         return list(self.client.beta.threads.messages.list(thread_id=self.thread().id))
 
-    def run_thread(self):
+    def run_thread(self, thread_id: Optional[str] = None):
         """Runs the current thread, blocking until it completes.
 
         See ask() for more details.
         """
-        # TODO better docs
-        # TODO handle multiple runs, run resuming, etc.? For now we just create a new run every time.
-        run = self.client.beta.threads.runs.create(thread_id=self.thread().id, assistant_id=self.assistant_id)
+        if thread_id is None:
+            thread = self.thread()
+        else:
+            thread = self.client.beta.threads.retrieve(thread_id)
+        # TODO check validity and status of thread
+        # For now we will just let the API throw if it's not valid.
+        run = self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id)
         iterations = 0
         while iterations < MAX_RUN_ITERATIONS:
             iterations += 1
             time.sleep(RUN_ITERATION_SLEEP)  # Sleep right away, openai is never done immediately
             # print(f"Run status is {run.status}, iteration {iterations}")  # TODO logging
-
-            # TODO figure out logging, this blocks for so long it will probably require some UI feedback
             match run.status:
                 case "queued" | "in_progress":
-                    run = self.client.beta.threads.runs.retrieve(thread_id=self.thread().id, run_id=run.id)
+                    run = self.client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
                     continue
                 case "completed":
                     return
                 case "requires_action":
-                    iterations = 0  # Ball is in our court
+                    iterations = 0
+                    # TODO reconsider iterations, in context of prompt
                     calls = run.required_action.submit_tool_outputs.tool_calls
-                    results = []
-                    for call in calls:
-                        if call.type == "function":  # for now always true
-                            name = call.function.name
-                            args = json.loads(call.function.arguments)
-                            result = (
-                                self.do_function(name, args) or "Success"
-                            )  # TODO better result handling... catch exceptions?
-                            results.append({"tool_call_id": call.id, "output": result})
-                    # TODO: Consider NOT submitting reslts, and instead just pretty-print a command execution
-                    # explaination and then execute it. Update the prompt to inform the assistant that it won't get a
-                    # chance to respond to the command, or something.
-                    if results:
-                        # print(f"Submitting results {results}")  # TODO logging
-                        run = self.client.beta.threads.runs.submit_tool_outputs(
-                            thread_id=self.thread().id, run_id=run.id, tool_outputs=results
-                        )
+                    results = self.tool_calls(thread.id, run.id, calls)
+                    outputs = [
+                        {
+                            "tool_call_id": result.call.call_id,
+                            "output": json.dumps(result.dict()),
+                        }
+                        for result in results
+                    ]
+                    run = self.client.beta.threads.runs.submit_tool_outputs(
+                        thread_id=thread.id,
+                        run_id=run.id,
+                        tool_outputs=outputs,
+                    )
                 case "cancelling" | "cancelled" | "failed" | "expired":
                     raise RuntimeError(f"Run failed with status {run.status}")
                 case _:
                     raise RuntimeError(f"Unexpected status {run.status}")
+
+    def tool_calls(self, thread_id: str, run_id: str, calls: list[dict[str, Any]]) -> list[FunctionResult]:
+        """Translate a ToolCall API response in to  a list of FunctionCalls and do them."""
+        function_specs = {func.name: func for func in self.functions()}
+
+        # Build function call list
+        # Here we use "function" to distinguish the openai call description from our
+        # internal function call description.
+        function_calls: list[FunctionCall] = []
+        for call in calls:
+            match call.type:
+                case "function":
+                    name = call.function.name
+                    args = json.loads(call.function.arguments)
+                case _:
+                    raise ValueError(f"Unexpected call type {call.type}")
+
+            if name not in function_specs:
+                # Long story short, sometimes the LLM thinks typer arg0 is a file and thus insists on pulling it out of
+                # the function name. This is a workaround kludge, and could cause problems.
+                for func in function_specs.values():
+                    if func.name.endswith(name):
+                        function = func
+                        break
+                else:
+                    raise ValueError(f"Unknown function {name}")
+            else:
+                function = function_specs[name]
+            function_calls.append(FunctionCall(call_id=call.id, function=function, parameters=args))
+
+        if self.prompt:
+            # TODO customize prompt
+            for i, call in enumerate(function_calls, 1):
+                argtxt = str(call.parameters).strip("{}")
+                command_title = shorten(f"{call.function.name}({argtxt})", 50)
+                print(Panel(command_title, border_style="dim", title=f"Command {i}", title_align="left"))
+            if not Confirm.ask("Allow the assistant to run these commands?"):
+                # TODO proper abort flow
+                raise RuntimeError("Aborted by user")
+
+        results = []
+        for call in function_calls:
+            with redirect_stdout(StringIO()) as buf:
+                retval = call.function.action(**call.parameters)
+            output = buf.getvalue().rstrip()
+            result = FunctionResult(call=call, return_value=retval, stdout=output)
+            results.append(result)
+
+            # TODO customize stdout
+            argtxt = str(call.parameters).strip("{}")
+            command_title = shorten(f"{call.function.name}({argtxt})", 50)
+            print(Panel(result.stdout, border_style="dim", title=command_title, title_align="left"))
+
+        return results
 
     def make_assistant(self) -> RemoteAssistant:
         # We would prefer to query for assistants of the given name, but the API doesn't support that.
