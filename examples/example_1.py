@@ -6,7 +6,7 @@ import typer
 from openai import OpenAI
 from typerassistant import TyperAssistant
 
-app = typer.Typer()
+app = typer.Typer(name="typerassistant_example_1")
 client = OpenAI()  # Assuming OPENAI_API_KEY is set in the environment
 
 
@@ -21,4 +21,6 @@ def get_current_user():
 
 
 TyperAssistant(app, client=client, replace=True)
-app()
+
+if __name__ == "__main__":
+    app()

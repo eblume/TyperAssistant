@@ -3,7 +3,7 @@
 import typer
 from typerassistant.typer import TyperAssistant
 
-app = typer.Typer()
+app = typer.Typer(name="typerassistant_example_3")
 
 
 @app.command()
