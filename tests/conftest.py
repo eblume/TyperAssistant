@@ -1,9 +1,7 @@
-import importlib.util
 import os
 import sys
 
 import pytest
-from typer import Typer
 
 
 def pytest_addoption(parser):
@@ -45,21 +43,3 @@ def mock_openai(session_mocker, pytestconfig):
         del os.environ["OPENAI_API_KEY"]
     mock = session_mocker.patch("openai.OpenAI", autospec=True)
     yield mock
-
-
-@pytest.fixture
-def example_app(example_name: str) -> Typer:
-    """Load an example app from the examples directory."""
-    example_path = os.path.join(os.path.dirname(__file__), "..", "examples", f"{example_name}.py")
-    spec = importlib.util.spec_from_file_location(example_name, example_path)
-    if spec is None or spec.loader is None:
-        raise ValueError(f"Could not load example {example_name}")
-    example = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(example)
-    return example.app
-
-
-@pytest.fixture(params=["example_1", "example_3"])
-def example_name(request) -> str:
-    """Override the params of this fixture to specify which example to load."""
-    return request.param

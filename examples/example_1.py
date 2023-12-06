@@ -1,4 +1,4 @@
-"""Usage: python example_1.py ask --no-prompt "Please greet me by name"
+"""Usage: python example_1.py ask "Please greet me by name"
 """
 import getpass
 
