@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "typerassistant"
-version = "0.2.8"
+version = "0.2.9"
 description = "Automatically generate an OpenAI Assistant interface for any python typer CLI."
 authors = ["Erich Blume <blume.erich@gmail.com>"]
 license = "MIT License"
