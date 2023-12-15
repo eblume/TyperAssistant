@@ -1,16 +1,12 @@
-"""Usage: python example_3.py ask "Pick a cat and send them to the Heaviside Layer"
+"""Usage: python example_3.py deuteronomy "Pick a cat and send them to the Heaviside Layer"
 """
 import typer
 from typerassistant.typer import TyperAssistant
 
 app = typer.Typer(name="typerassistant_example_3")
-
-
-@app.command()
-def delete_assistant():
-    if hasattr(app, "assistant"):  # You can substitute your own state mechanism, eg. globals
-        app.assistant.client.beta.assistants.delete(app.assistant.assistant_id)
-
+# Instead of using register_assistant, we can manually generate assistants as-needed.
+# Remote assistant definition is delayed until the assistant is actually used.
+assistant = TyperAssistant(app, instructions="The assistant is Old Deuteronomy, the sage of the Jellicle Cats.")
 
 # Subgroups are supported (with some automatically handled name mangling)
 cats = typer.Typer()
@@ -52,17 +48,30 @@ def ascend(cat: str):
 
 @cats.command()
 def introduce():
-    global jellicles
-    name = app.assistant.ask("An original name for a cat in the style of T.S. Eliot")
-    jellicles.append(name)
+    """Introduce a new cat to the Jellicle tribe."""
+    global jellicles, assistant
+    cat = (
+        assistant.ask(
+            "An original name for a cat in the style of T.S. Eliot",
+            instructions="Respond only with a name for a cat with no other text.",
+            use_commands=False,
+        )
+        .splitlines()[0]
+        .strip()
+    )
+    assert cat
+    jellicles.append(cat)
+    print(f"Welcome, {cat}, to the Jellicle tribe!")
 
 
 app.add_typer(cats, name="cats")
 
-# The instatiation of TyperAssistant must come AFTER all other typer commands are registered, or else the assistant
-# will not learn about those commands! (This will be fixed in a later release.)
-assistant = TyperAssistant(app)
-app.assistant = assistant
+
+# We can prevent recursive assistant generation by setting omit_from_assistant on the context object.
+@app.command("deuteronomy", context_settings={"obj": {"omit_from_assistant": True}})
+def ask_old_deuteronomy(query: str):
+    print(assistant.ask(query, confirm_commands=False))
+
 
 if __name__ == "__main__":
     app()

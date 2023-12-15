@@ -3,11 +3,10 @@
 import getpass
 
 import typer
-from openai import OpenAI
-from typerassistant import TyperAssistant
+from typerassistant import register_assistant
 
 app = typer.Typer(name="typerassistant_example_1")
-client = OpenAI()  # Assuming OPENAI_API_KEY is set in the environment
+register_assistant(app)
 
 
 @app.command()
@@ -19,8 +18,6 @@ def say_hello(name: str):
 def get_current_user():
     print(getpass.getuser())
 
-
-TyperAssistant(app, client=client, replace=True)
 
 if __name__ == "__main__":
     app()

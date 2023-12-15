@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
+from openai.types.beta.assistant_create_params import ToolAssistantToolsFunction
+from openai.types.shared_params import FunctionDefinition, FunctionParameters
+
 
 @dataclass
 class ParameterSpec:
@@ -10,12 +13,14 @@ class ParameterSpec:
     default: Optional[str] = None
     enum: Optional[list[str]] = None
 
+    def dict(self) -> dict[str, Any]:
+        return {
+            "type": "string",  # At this time, no other types are supported.
+            "description": self.description or "None",
+            "default": self.default or "None",
+        }
 
-# Why not use openai.types.beta.threads.run_create_params.ToolAssistantToolsFunction?
-# For one, it's not documented and it's really hard to use programmatically. For another, I want to use this to bind
-# functionspec definitions to callable actions, for reversable function<->functionspec lookups.
-# TODO find a better way to document this decision and explain it.
-# TODO make this parametric to the return type, and thread it through to the result
+
 @dataclass
 class FunctionSpec:
     name: str
@@ -23,32 +28,32 @@ class FunctionSpec:
     parameters: list[ParameterSpec]
     action: Callable[..., Any]
 
-    def dict(self) -> dict:
-        struct = {
-            "type": "function",
-            "function": {
-                "name": self.name,
-                "description": self.description,
-                "parameters": {  # This is now technically a JSONSchema object
-                    "type": "object",
-                    "properties": {
-                        param.name: {
-                            "type": "string",  # TODO other types?
-                            "description": param.description,
-                            "default": param.default or "None",
-                        }
-                        for param in self.parameters
-                    },
-                    "required": [param.name for param in self.parameters if param.required],
-                },
-            },
+    def tool(self) -> ToolAssistantToolsFunction:
+        return ToolAssistantToolsFunction(
+            type="function",
+            function=FunctionDefinition(
+                name=self.name,
+                description=self.description or "None",
+                parameters=self.json_parameters(),
+            ),
+        )
+
+    def json_parameters(self) -> FunctionParameters:
+        # For some reason OpenAI doesn't continue to type this, but instead just provides dict[str, object].
+        # In any case, it's supposed to be a JSONSchema object, so we'll just do that manually for now.
+        # https://github.com/openai/openai-python/blob/main/src/openai/types/shared_params/function_parameters.py
+        parameters = {
+            "type": "object",
+            "properties": {param.name: param.dict() for param in self.parameters},
+            "required": [param.name for param in self.parameters if param.required],
         }
 
         # enum processing - do this in a second pass to avoid empty enums
         for param in self.parameters:
             if param.enum:
-                struct["function"]["parameters"]["properties"][param.name]["enum"] = list(param.enum)
-        return struct
+                parameters["properties"][param.name]["enum"] = list(param.enum)
+
+        return parameters
 
 
 @dataclass
