@@ -27,19 +27,19 @@ def pytest_collection_modifyitems(config, items):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def mock_openai(session_mocker, pytestconfig):
-    """MagicMock openai.OpenAI if --openai is not passed."""
+def unset_openai_env(pytestconfig):
+    """Disarm openai.OpenAI if --openai is not passed.
+
+    Works by unsetting OPENAI_API_KEY in the environment, as a safety measure against accidentally mutating remote state.
+    """
     if pytestconfig.getoption("--openai"):
         if "OPENAI_API_KEY" not in os.environ:
             sys.stderr.write(
                 "WARNING: --openai is set but OPENAI_API_KEY is not in the environment. "
                 "Integration tests will fail.\n"
             )
-        yield None
         return
 
     # Extra protection against accidentally running integration tests
     if "OPENAI_API_KEY" in os.environ:
         del os.environ["OPENAI_API_KEY"]
-    mock = session_mocker.patch("openai.OpenAI", autospec=True)
-    yield mock

@@ -46,7 +46,7 @@ class Assistant:
     instructions: str = "The agent is a helpful assistant. Its behavior and capabilities can be extended via the 'typerassistant' python package's API."
     client: OpenAI = field(default_factory=OpenAI)
     replace: bool = False
-    _assistant: Optional[RemoteAssistant] = field(init=False, default=None)
+    _assistant: Optional[RemoteAssistant] = None
 
     @classmethod
     def from_id(cls: Type[AssistantT], assistant_id: str, client: Optional[OpenAI] = None) -> AssistantT:
@@ -56,10 +56,12 @@ class Assistant:
         if client is None:
             client = OpenAI()
         assistant = client.beta.assistants.retrieve(assistant_id)
-        assert assistant.name
-        new = cls(client=client, name=assistant.name, instructions=assistant.instructions or cls.instructions)
-        new._assistant = assistant
-        return new
+        return cls(
+            client=client,
+            name=assistant.name or "Unnamed Assistant",
+            instructions=assistant.instructions or cls.instructions,
+            _assistant=assistant,
+        )
 
     @property
     def assistant(self) -> RemoteAssistant:

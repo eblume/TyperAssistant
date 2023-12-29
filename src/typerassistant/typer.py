@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import sys
 from dataclasses import KW_ONLY, dataclass, field
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Type
 
 import typer
 from openai import OpenAI
 from typer.main import get_command_from_info
 
-from .assistant import Assistant
+from .assistant import Assistant, AssistantT
 from .spec import FunctionSpec, ParameterSpec
 
 
@@ -22,6 +24,25 @@ class TyperAssistant(Assistant):
     def __post_init__(self):
         # In AppAssistant, we always infer the name
         self.name = self.app.info.name or sys.argv[0]
+
+    @classmethod
+    def from_id(cls: Type[AssistantT], assistant_id: str, client: Optional[OpenAI] = None) -> AssistantT:
+        """from_id is disabled for TyperAssistant, use from_id_with_app instead."""
+        # TODO this is ugly and bad but I could not find a way to satisfy LSP.
+        # Even uglier: to get the unused variable warning to go away, these two asserts:
+        assert client or True
+        assert assistant_id or True
+        # Just an ugly, ugly function. Two out of five stars. I'm sorry.
+        raise NotImplementedError("from_id is disabled for TyperAssistant, use from_id_with_app instead.")
+
+    @classmethod
+    def from_id_with_app(cls, assistant_id: str, app: typer.Typer, client: Optional[OpenAI] = None) -> TyperAssistant:
+        if client is None:
+            client = OpenAI()
+        assistant = client.beta.assistants.retrieve(assistant_id)
+        return TyperAssistant(
+            app=app, client=client, instructions=assistant.instructions or cls.instructions, _assistant=assistant
+        )
 
     def functions(self) -> Iterable[FunctionSpec]:
         """Generate FunctionSpecs from the Typer app."""
