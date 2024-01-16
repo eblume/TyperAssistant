@@ -69,4 +69,4 @@ For now, please use the github Issues feature, but I plan to investigate further
 
 This software is licensed with the MIT license. Please see the file `LICENSE` for more information.
 
-TyperAssistant is copyright Erich Blume, 2023.
+TyperAssistant is copyright Erich Blume, 2024.
